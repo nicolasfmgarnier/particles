@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.nicolasgarnier.particles.JaipurGame;
 import com.nicolasgarnier.particles.model.JaipurModel;
 
 public class JaipurView {
@@ -59,6 +60,8 @@ public class JaipurView {
   public void render() {
     spriteBatch.begin();
     if (!model.roundOver && !model.gameOver) {
+      if (JaipurGame.playerID != model.playerTurn) Gdx.graphics.setTitle("Jaipur - Waiting for opponent action...");
+      else Gdx.graphics.setTitle("Jaipur - Your turn to play !");
       tokensBoard.render();
       marketBoard.render();
       player0Board.render();

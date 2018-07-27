@@ -179,7 +179,8 @@ public class JaipurModel implements Serializable {
     
     // Deciding who is going to play first
     if (lastToStart == -1) {
-      playerTurn = (int) (2 * Math.random());
+      //playerTurn = (int) (2 * Math.random());
+      playerTurn = 0;
       lastToStart = playerTurn;
     } else if (lastToStart == 0) {
       playerTurn = 1;

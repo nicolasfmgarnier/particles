@@ -4,15 +4,12 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.HorizontalGroup;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
@@ -29,13 +26,12 @@ public class MenuStage extends Stage {
   private TextField ipToConnectTextField;
   private TextButton joinGameButton;
   
-  private final BitmapFont jaipurFont;
+  private final Skin neonSkin;
   
-  public MenuStage(final BitmapFont jaipurFont) {
+  public MenuStage() {
     super(new ScreenViewport());
-    this.jaipurFont = jaipurFont;
+    neonSkin = new Skin(Gdx.files.internal("neon/skin/neon-ui.json"));
     createUIElmts();
-    Gdx.input.setInputProcessor(this);
   }
   
   private void createUIElmts() {
@@ -47,40 +43,32 @@ public class MenuStage extends Stage {
     
       InetAddress myIP = InetAddress.getLocalHost();
     
-      LabelStyle labelStyle = new LabelStyle();
-      labelStyle.font = jaipurFont;
-      
-      myIPLabel = new Label("Your IP is : " + myIP.getHostAddress(), labelStyle);
+      myIPLabel = new Label("Your IP is : " + myIP.getHostAddress(), neonSkin);
       uiElmtsGroup.addActor(myIPLabel);
       
       uiElmtsNoIPGroup = new VerticalGroup();
       uiElmtsNoIPGroup.space(0.05f * Gdx.graphics.getHeight());
       uiElmtsGroup.addActor(uiElmtsNoIPGroup);
       
-      instructions1Label = new Label("You can either create a game :", labelStyle);
+      instructions1Label = new Label("You can either create a game :", neonSkin);
       uiElmtsNoIPGroup.addActor(instructions1Label);
       
-      TextButtonStyle textButtonStyle = new TextButtonStyle();
-      textButtonStyle.font = jaipurFont;
-      
-      createGameButton = new TextButton("Create game", textButtonStyle);
+      createGameButton = new TextButton("Create game", neonSkin);
       uiElmtsNoIPGroup.addActor(createGameButton);
       
-      instructions2Label = new Label("Or join an existing game :", labelStyle);
+      instructions2Label = new Label("Or join an existing game :", neonSkin);
       uiElmtsNoIPGroup.addActor(instructions2Label);
       
       joinGameGroup = new HorizontalGroup();
       uiElmtsNoIPGroup.addActor(joinGameGroup);
       
-      instructions3Label = new Label("IP to join : ", labelStyle);
+      instructions3Label = new Label("IP to join : ", neonSkin);
       joinGameGroup.addActor(instructions3Label);
       
-      TextFieldStyle textFieldStyle = new TextFieldStyle();
-      textFieldStyle.font = jaipurFont;
-      ipToConnectTextField = new TextField("", textFieldStyle);
+      ipToConnectTextField = new TextField("", neonSkin);
       joinGameGroup.addActor(ipToConnectTextField);
       
-      joinGameButton = new TextButton("Join game", textButtonStyle);
+      joinGameButton = new TextButton("Join game", neonSkin);
       joinGameGroup.addActor(joinGameButton);
     
     } catch (UnknownHostException e) {
@@ -98,6 +86,12 @@ public class MenuStage extends Stage {
   
   public TextField getIPToConnectTextField() {
     return ipToConnectTextField;
+  }
+  
+  public void resize(final int width, final int height) {
+    uiElmtsGroup.setBounds(0, 0, width, height);
+    uiElmtsGroup.space(0.2f * height);
+    uiElmtsNoIPGroup.space(0.05f * height);
   }
   
 }

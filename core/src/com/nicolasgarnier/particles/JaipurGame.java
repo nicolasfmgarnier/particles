@@ -11,6 +11,8 @@ import com.nicolasgarnier.particles.view.JaipurView;
 
 public class JaipurGame {
   
+  static public int playerID;
+  
   private SpriteBatch spriteBatch;
 
   private MenuStage menuStage;
@@ -28,7 +30,8 @@ public class JaipurGame {
     bgdTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
     this.jaipurFont = new BitmapFont(Gdx.files.internal("jaipur_font_small.fnt"));
     
-    menuStage = new MenuStage(jaipurFont);
+    menuStage = new MenuStage();
+    Gdx.input.setInputProcessor(menuStage);
     model = new JaipurModel();
     controller = new JaipurController(model, menuStage);
     jaipurBoard = null;
@@ -39,14 +42,21 @@ public class JaipurGame {
     spriteBatch.draw(bgdTexture, 0, 0, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     spriteBatch.end();
     if (model.ready) {
-      if (jaipurBoard == null) jaipurBoard = new JaipurView(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), spriteBatch, model);
+      if (jaipurBoard == null) {
+        jaipurBoard = new JaipurView(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), spriteBatch, model);
+        controller.setView(jaipurBoard);
+      }
       jaipurBoard.render();
     }
-    else menuStage.draw();
+    else {
+      menuStage.draw();
+      menuStage.act();
+    }
   }
   
   public void resize(final int width, final int height) {
-    menuStage.getViewport().update(width, height);
+    menuStage.getViewport().update(width, height, true);
+    menuStage.resize(width, height);
     Matrix4 matrix = new Matrix4();
     matrix.setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     this.spriteBatch.setProjectionMatrix(matrix);

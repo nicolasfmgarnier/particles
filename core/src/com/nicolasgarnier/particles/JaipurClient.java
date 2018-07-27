@@ -6,28 +6,28 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 import com.nicolasgarnier.particles.model.JaipurModel;
+import com.nicolasgarnier.particles.view.JaipurView;
 
 public class JaipurClient implements Runnable {
 
-  private String ipServer;
-  private int portServer;
+  private Socket socket;
   private JaipurModel model;
+  private JaipurView view;
   
-  public JaipurClient(final String ipServer, final int portServer, JaipurModel model) {
-    this.ipServer = ipServer;
-    this.portServer = portServer;
+  public JaipurClient(JaipurModel model, Socket socket, JaipurView view) {
     this.model = model;
+    this.socket = socket;
+    this.view = view;
   }
   
   @Override
   public void run() {
     try {
-      Socket socket = new Socket(ipServer, portServer);
       ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
       JaipurModel modelTmp = (JaipurModel) ois.readObject();
       model.copy(modelTmp);
+      if (view != null) view.recomputeSpritesPositions();
       System.out.println("Model received");
-      socket.close();
     } catch (UnknownHostException e) {
       e.printStackTrace();
     } catch (IOException e) {

@@ -1,6 +1,9 @@
 package com.nicolasgarnier.particles.controller;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.InetAddress;
+import java.net.Socket;
 import java.net.UnknownHostException;
 
 import com.badlogic.gdx.Gdx;
@@ -9,6 +12,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.nicolasgarnier.particles.Constants;
 import com.nicolasgarnier.particles.JaipurClient;
+import com.nicolasgarnier.particles.JaipurGame;
 import com.nicolasgarnier.particles.JaipurServer;
 import com.nicolasgarnier.particles.MenuStage;
 import com.nicolasgarnier.particles.model.JaipurModel;
@@ -22,8 +26,8 @@ public class JaipurController {
   private InputProcessor inputProcessor;
   private String serverIP;
   private int serverPort;
-  private Thread serverThread;
-  private Thread clientThread;
+  
+  private Socket clientSocket;
   
   public JaipurController(final JaipurModel model, final MenuStage menu) {
     this.menu = menu;
@@ -36,17 +40,24 @@ public class JaipurController {
       @Override
       public void changed(ChangeEvent event, Actor actor) {
         try {
+          JaipurGame.playerID = 0;
+          
           serverIP = InetAddress.getLocalHost().getHostAddress();
           serverPort = 22000;
           
           // Launching the server
-          serverThread = new Thread(new JaipurServer(serverPort, serverPort + 1), "JaipurServer");
+          Thread serverThread = new Thread(new JaipurServer(serverPort, serverPort + 1), "JaipurServer");
           serverThread.start();
           
-          // Connecting to the server and getting the model
-          clientThread = new Thread(new JaipurClient(serverIP, serverPort, model), "JaipurClient");
+          // Creating the socket
+          clientSocket = new Socket(serverIP, serverPort);
+          
+          // Getting the model
+          Thread clientThread = new Thread(new JaipurClient(model, clientSocket, null), "JaipurClient");
           clientThread.start();
         } catch (UnknownHostException e) {
+          e.printStackTrace();
+        } catch (IOException e) {
           e.printStackTrace();
         }
       }
@@ -54,18 +65,31 @@ public class JaipurController {
     menu.getJoinGameButton().addListener(new ChangeListener() {
       @Override
       public void changed(ChangeEvent event, Actor actor) {
-        //serverIP = menu.getIPToConnectTextField().getMessageText();
-        serverIP = "192.168.205.57";
-        serverPort = 22001;
-        
-        // Connecting to the server and getting the model
-        clientThread = new Thread(new JaipurClient(serverIP, serverPort, model), "JaipurClient");
-        clientThread.start();
+        try {
+          JaipurGame.playerID = 1;
+          
+          //serverIP = menu.getIPToConnectTextField().getMessageText();
+          serverIP = "192.168.205.57";
+          serverPort = 22001;
+          
+          // Creating the socket
+          clientSocket = new Socket(serverIP, serverPort);
+          
+          // Getting the model
+          Thread clientThread = new Thread(new JaipurClient(model, clientSocket, null), "JaipurClient");
+          clientThread.start();
+        } catch (UnknownHostException e) {
+          e.printStackTrace();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
       }
     });
   }
   
   public void setView(final JaipurView view) {
+    // We start by running a ClientThread if the curPlayer is not me (to wait for the updated model)
+    if (JaipurGame.playerID != model.playerTurn) waitForOpponentAction();
     this.view = view;
     initEventListener();
   }
@@ -91,109 +115,117 @@ public class JaipurController {
         int y = screenHeight - screenY;
         
         if (!model.roundOver && !model.gameOver) {
-          // Check if a cur player good card has been clicked on
-          int cardID = view.curPlayerCardClicked(x, y);
-          if (cardID != -1) {
-            boolean oldValue = model.playerCardsSelected.get(model.playerTurn).get(cardID);
-            oldValue ^= true;
-            model.playerCardsSelected.get(model.playerTurn).set(cardID, oldValue);
-            model.unselectAllMarketCamels();
-            view.recomputeSpritesPositions();
-            model.reevaluateAvailableActions();
-            return true;
-          }
-          
-          // Check if a market card has been clicked on
-          int marketCardID = view.marketCardClicked(x, y);
-          if (marketCardID != -1) {
-            if (model.market.get(marketCardID) == Constants.SPECIAL_CAMELS) {
-              model.unselectAllCurPlayerCards();
-              model.unselectAllMarketCards();
-              if (!model.marketCamelsSelected) {
-                model.selectAllMarketCamels();
+          if (JaipurGame.playerID == model.playerTurn) {
+            // Check if a cur player good card has been clicked on
+            int cardID = view.curPlayerCardClicked(x, y);
+            if (cardID != -1) {
+              boolean oldValue = model.playerCardsSelected.get(model.playerTurn).get(cardID);
+              oldValue ^= true;
+              model.playerCardsSelected.get(model.playerTurn).set(cardID, oldValue);
+              model.unselectAllMarketCamels();
+              view.recomputeSpritesPositions();
+              model.reevaluateAvailableActions();
+              return true;
+            }
+            
+            // Check if a market card has been clicked on
+            int marketCardID = view.marketCardClicked(x, y);
+            if (marketCardID != -1) {
+              if (model.market.get(marketCardID) == Constants.SPECIAL_CAMELS) {
+                model.unselectAllCurPlayerCards();
+                model.unselectAllMarketCards();
+                if (!model.marketCamelsSelected) {
+                  model.selectAllMarketCamels();
+                } else {
+                  model.unselectAllMarketCamels();
+                }
               } else {
+                boolean oldValue = model.marketSelected.get(marketCardID);
+                oldValue ^= true;
+                model.marketSelected.set(marketCardID, oldValue);
                 model.unselectAllMarketCamels();
               }
-            } else {
-              boolean oldValue = model.marketSelected.get(marketCardID);
-              oldValue ^= true;
-              model.marketSelected.set(marketCardID, oldValue);
-              model.unselectAllMarketCamels();
-            }
-            view.recomputeSpritesPositions();
-            model.reevaluateAvailableActions();
-            return true;
-          }
-          
-          // Check if the curPlayer camels have been clicked on
-          if (view.curPlayerCamelsClicked(x, y)) {
-            model.playerCamelsSelected ^= true;
-            if (!model.playerCamelsSelected) model.nbPlayerCamelsSelected = 0;
-            else model.nbPlayerCamelsSelected = 1;
-            view.recomputeSpritesPositions();
-            model.reevaluateAvailableActions();
-            return true;
-          }
-          
-          // Check if the curPlayer camels buttons have been clicked on, iif the cur player camels
-          // are active
-          if (model.playerCamelsSelected) {
-            int camelsButton = view.curPlayerCamelsButtonClicked(x, y);
-            if (camelsButton != -1) {
-              if (camelsButton == 0) {
-                if (model.nbPlayerCamelsSelected > 1) model.nbPlayerCamelsSelected--;
-              } else if (camelsButton == 1) {
-                if (model.nbPlayerCamelsSelected != model.playerCamels.get(model.playerTurn)) model.nbPlayerCamelsSelected++;
-              }
               view.recomputeSpritesPositions();
               model.reevaluateAvailableActions();
               return true;
             }
-          }
-          
-          // Check if the get button has been clicked
-          // Doing that only if applicable !
-          if (model.readyToGetCards) {
-            int actionButton = view.actionButtonClicked(x, y);
-            if (actionButton == 1) {
-              model.getCards();
-              model.nextPlayer();
+            
+            // Check if the curPlayer camels have been clicked on
+            if (view.curPlayerCamelsClicked(x, y)) {
+              model.playerCamelsSelected ^= true;
+              if (!model.playerCamelsSelected) model.nbPlayerCamelsSelected = 0;
+              else model.nbPlayerCamelsSelected = 1;
               view.recomputeSpritesPositions();
               model.reevaluateAvailableActions();
               return true;
             }
-          }
-          
-          // Check if the exchange button has been clicked
-          // Doing that only if applicable !
-          if (model.readyToExchangeCards) {
-            int actionButton = view.actionButtonClicked(x, y);
-            if (actionButton == 2) {
-              model.exchangeCards();
-              model.nextPlayer();
-              view.recomputeSpritesPositions();
-              model.reevaluateAvailableActions();
-              return true;
-            }
-          }
-          
-          // Check if the sell button has been clicked
-          // Doing that only if applicable !
-          if (model.readyToSellCards) {
-            int actionButton = view.actionButtonClicked(x, y);
-            if (actionButton == 0) {
-              model.sellCards();
-              if (model.threeGoodsMissing()) model.roundOver = true;
-              if (!model.roundOver) {
-                model.nextPlayer();
+            
+            // Check if the curPlayer camels buttons have been clicked on, iif the cur player camels
+            // are active
+            if (model.playerCamelsSelected) {
+              int camelsButton = view.curPlayerCamelsButtonClicked(x, y);
+              if (camelsButton != -1) {
+                if (camelsButton == 0) {
+                  if (model.nbPlayerCamelsSelected > 1) model.nbPlayerCamelsSelected--;
+                } else if (camelsButton == 1) {
+                  if (model.nbPlayerCamelsSelected != model.playerCamels.get(model.playerTurn)) model.nbPlayerCamelsSelected++;
+                }
                 view.recomputeSpritesPositions();
                 model.reevaluateAvailableActions();
                 return true;
               }
             }
+            
+            // Check if the get button has been clicked
+            // Doing that only if applicable !
+            if (model.readyToGetCards) {
+              int actionButton = view.actionButtonClicked(x, y);
+              if (actionButton == 1) {
+                model.getCards();
+                model.nextPlayer();
+                view.recomputeSpritesPositions();
+                model.reevaluateAvailableActions();
+                sendUpdatedModel();
+                waitForOpponentAction();
+                return true;
+              }
+            }
+            
+            // Check if the exchange button has been clicked
+            // Doing that only if applicable !
+            if (model.readyToExchangeCards) {
+              int actionButton = view.actionButtonClicked(x, y);
+              if (actionButton == 2) {
+                model.exchangeCards();
+                model.nextPlayer();
+                view.recomputeSpritesPositions();
+                model.reevaluateAvailableActions();
+                sendUpdatedModel();
+                waitForOpponentAction();
+                return true;
+              }
+            }
+            
+            // Check if the sell button has been clicked
+            // Doing that only if applicable !
+            if (model.readyToSellCards) {
+              int actionButton = view.actionButtonClicked(x, y);
+              if (actionButton == 0) {
+                model.sellCards();
+                if (model.threeGoodsMissing()) model.roundOver = true;
+                if (!model.roundOver) {
+                  model.nextPlayer();
+                  view.recomputeSpritesPositions();
+                  model.reevaluateAvailableActions();
+                  sendUpdatedModel();
+                  waitForOpponentAction();
+                  return true;
+                }
+              }
+            }
+            
+            return true;
           }
-          
-          return true;
         } else if (!model.gameOver) {
           // Check if the continue button has been clicked
           if (view.continueButtonClicked(x, y)) {
@@ -249,6 +281,20 @@ public class JaipurController {
     };
     
     Gdx.input.setInputProcessor(inputProcessor);
+  }
+  
+  private void sendUpdatedModel() {
+    try {
+      ObjectOutputStream oos1 = new ObjectOutputStream(clientSocket.getOutputStream());
+      oos1.writeObject(model);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+  
+  private void waitForOpponentAction() {
+    Thread clientThread = new Thread(new JaipurClient(model, clientSocket, view), "JaipurClient");
+    clientThread.start();
   }
   
 }
