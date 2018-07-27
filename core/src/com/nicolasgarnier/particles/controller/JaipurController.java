@@ -1,23 +1,71 @@
 package com.nicolasgarnier.particles.controller;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.nicolasgarnier.particles.Constants;
+import com.nicolasgarnier.particles.JaipurClient;
+import com.nicolasgarnier.particles.JaipurServer;
+import com.nicolasgarnier.particles.MenuStage;
 import com.nicolasgarnier.particles.model.JaipurModel;
-import com.nicolasgarnier.particles.view.Board;
+import com.nicolasgarnier.particles.view.JaipurView;
 
 public class JaipurController {
   
+  private MenuStage menu;
   private JaipurModel model;
-  private Board view;
+  private JaipurView view;
   private InputProcessor inputProcessor;
+  private String serverIP;
+  private int serverPort;
+  private Thread serverThread;
+  private Thread clientThread;
   
-  public JaipurController(final JaipurModel model) {
+  public JaipurController(final JaipurModel model, final MenuStage menu) {
+    this.menu = menu;
     this.model = model;
-    this.model.startGame();
+    initMenuListeners();
   }
   
-  public void setView(final Board view) {
+  private void initMenuListeners() {
+    menu.getCreateGameButton().addListener(new ChangeListener() {
+      @Override
+      public void changed(ChangeEvent event, Actor actor) {
+        try {
+          serverIP = InetAddress.getLocalHost().getHostAddress();
+          serverPort = 22000;
+          
+          // Launching the server
+          serverThread = new Thread(new JaipurServer(serverPort, serverPort + 1), "JaipurServer");
+          serverThread.start();
+          
+          // Connecting to the server and getting the model
+          clientThread = new Thread(new JaipurClient(serverIP, serverPort, model), "JaipurClient");
+          clientThread.start();
+        } catch (UnknownHostException e) {
+          e.printStackTrace();
+        }
+      }
+    });
+    menu.getJoinGameButton().addListener(new ChangeListener() {
+      @Override
+      public void changed(ChangeEvent event, Actor actor) {
+        //serverIP = menu.getIPToConnectTextField().getMessageText();
+        serverIP = "192.168.205.57";
+        serverPort = 22001;
+        
+        // Connecting to the server and getting the model
+        clientThread = new Thread(new JaipurClient(serverIP, serverPort, model), "JaipurClient");
+        clientThread.start();
+      }
+    });
+  }
+  
+  public void setView(final JaipurView view) {
     this.view = view;
     initEventListener();
   }

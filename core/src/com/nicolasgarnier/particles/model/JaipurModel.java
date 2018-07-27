@@ -1,12 +1,15 @@
 package com.nicolasgarnier.particles.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import com.nicolasgarnier.particles.Constants;
 
-public class JaipurModel {
+public class JaipurModel implements Serializable {
+  
+  private static final long serialVersionUID = 1L;
   
   // Market zone
   public List<Integer> market = new ArrayList<Integer>();
@@ -31,6 +34,7 @@ public class JaipurModel {
   public List<List<Integer>> playerTokens789 = new ArrayList<List<Integer>>();
   
   // General status
+  public boolean ready = false;
   public int playerTurn;
   public boolean marketCamelsSelected;
   public boolean readyToGetCards;
@@ -42,8 +46,39 @@ public class JaipurModel {
   public boolean gameOver;
   public int lastToStart;
   
+  // Copy internal values
+  public void copy(final JaipurModel model) {
+    this.market = model.market;
+    this.marketSelected = model.marketSelected;
+    this.deck = model.deck;
+    this.goodTokens = model.goodTokens;
+    this.rewardTokens123 = model.rewardTokens123;
+    this.rewardTokens456 = model.rewardTokens456;
+    this.rewardTokens789 = model.rewardTokens789;
+    this.playerCards = model.playerCards;
+    this.playerCardsSelected = model.playerCardsSelected;
+    this.playerCamels = model.playerCamels;
+    this.playerScore = model.playerScore;
+    this.playerRounds = model.playerRounds;
+    this.playerGoodsTokens = model.playerGoodsTokens;
+    this.playerTokens123 = model.playerTokens123;
+    this.playerTokens456 = model.playerTokens456;
+    this.playerTokens789 = model.playerTokens789;
+    this.ready = model.ready;
+    this.playerTurn = model.playerTurn;
+    this.marketCamelsSelected = model.marketCamelsSelected;
+    this.readyToGetCards = model.readyToGetCards;
+    this.readyToExchangeCards = model.readyToExchangeCards;
+    this.readyToSellCards = model.readyToSellCards;
+    this.nbPlayerCamelsSelected = model.nbPlayerCamelsSelected;
+    this.roundOver = model.roundOver;
+    this.gameOver = model.gameOver;
+    this.lastToStart = model.lastToStart;
+  }
+  
   // Start game/round
   public void startGame() {
+    ready = true;
     lastToStart = -1;
     playerRounds.clear();
     playerRounds.add(0);

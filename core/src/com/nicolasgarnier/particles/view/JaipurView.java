@@ -6,7 +6,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.nicolasgarnier.particles.model.JaipurModel;
 
-public class Board {
+public class JaipurView {
 
   private int width;
   private int height;
@@ -22,7 +22,6 @@ public class Board {
   private final SpriteBatch spriteBatch;
   private final JaipurModel model;
   
-  private final Texture bgdTexture;
   private final Texture cardsTexture;
   private final Texture tokensTexture;
   private final Texture bonusTokensTexture;
@@ -37,13 +36,11 @@ public class Board {
   private final BitmapFont jaipurFont;
   private final BitmapFont jaipurFontLarge;
   
-  public Board(final int width, final int height, final SpriteBatch spriteBatch, final JaipurModel model) {
+  public JaipurView(final int width, final int height, final SpriteBatch spriteBatch, final JaipurModel model) {
     this.width = width;
     this.height = height;
     this.spriteBatch = spriteBatch;
     this.model = model;
-    this.bgdTexture = new Texture(Gdx.files.internal("pool_table.png"));
-    bgdTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
     this.cardsTexture = new Texture(Gdx.files.internal("cards.png"));
     this.tokensTexture = new Texture(Gdx.files.internal("tokens_goods.png"));
     this.bonusTokensTexture = new Texture(Gdx.files.internal("tokens_bonus.png"));
@@ -61,7 +58,6 @@ public class Board {
   
   public void render() {
     spriteBatch.begin();
-    spriteBatch.draw(bgdTexture, 0, 0, 0, 0, width, height);
     if (!model.roundOver && !model.gameOver) {
       tokensBoard.render();
       marketBoard.render();
@@ -77,7 +73,6 @@ public class Board {
   }
   
   public void dispose() {
-    bgdTexture.dispose();
     cardsTexture.dispose();
     tokensTexture.dispose();
     bonusTokensTexture.dispose();
