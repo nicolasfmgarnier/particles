@@ -14,7 +14,7 @@ public class JaipurView {
   
   private TokensBoard tokensBoard;
   private MarketBoard marketBoard;
-  private PlayerBoard player0Board;
+  private PlayerSelfBoard playerSelfBoard;
   private PlayerBoard player1Board;
   private ActionBoard actionBoard;
   private ScoreBoard scoreBoard;
@@ -64,7 +64,7 @@ public class JaipurView {
       else Gdx.graphics.setTitle("Jaipur - Your turn to play !");
       tokensBoard.render();
       marketBoard.render();
-      player0Board.render();
+      playerSelfBoard.render();
       player1Board.render();
       actionBoard.render();
     } else if (!model.gameOver) {
@@ -96,7 +96,7 @@ public class JaipurView {
   }
   
   public int curPlayerCardClicked(final int x, final int y) {
-    return (model.playerTurn == 0) ? player0Board.playerCardClicked(x, y) : player1Board.playerCardClicked(x, y);
+    return playerSelfBoard.playerCardClicked(x, y);
   }
   
   public int marketCardClicked(final int x, final int y) {
@@ -104,11 +104,11 @@ public class JaipurView {
   }
   
   public boolean curPlayerCamelsClicked(final int x, final int y) {
-    return (model.playerTurn == 0) ? player0Board.playerCamelsClicked(x, y) : player1Board.playerCamelsClicked(x, y);
+    return playerSelfBoard.playerCamelsClicked(x, y);
   }
   
   public int curPlayerCamelsButtonClicked(final int x, final int y) {
-    return (model.playerTurn == 0) ? player0Board.playerCamelsButtonClicked(x, y) : player1Board.playerCamelsButtonClicked(x, y);
+    return playerSelfBoard.playerCamelsButtonClicked(x, y);
   }
   
   public int actionButtonClicked(final int x, final int y) {
@@ -127,7 +127,7 @@ public class JaipurView {
     if (!model.roundOver && !model.gameOver) {
       tokensBoard.computeTokensBoxes();
       marketBoard.computeCardsBoxes();
-      player0Board.computeBoxes();
+      playerSelfBoard.computeBoxes();
       player1Board.computeBoxes();
       actionBoard.computeButtonsBoxes();
     } else if (!model.gameOver) {
@@ -142,10 +142,10 @@ public class JaipurView {
     tokensBoard = new TokensBoard(0, 0, (int) (0.3 * this.width), this.height, this.spriteBatch, this.model, this.tokensTexture);
     
     // SELF PLAYER BOARD
-    player0Board = new PlayerBoard((int) (0.3 * this.width), 0, this.width - ((int) (0.3 * this.width)), (int) (0.25 * this.height), 0, this.spriteBatch, this.model, this.cardsTexture, this.tokensTexture, this.bonusTokensTexture, this.camelsActionsButtonsTexture, this.starTexture, this.jaipurFont);
+    playerSelfBoard = new PlayerSelfBoard((int) (0.3 * this.width), 0, this.width - ((int) (0.3 * this.width)), (int) (0.25 * this.height), JaipurGame.playerID, this.spriteBatch, this.model, this.cardsTexture, this.tokensTexture, this.bonusTokensTexture, this.camelsActionsButtonsTexture, this.starTexture, this.jaipurFont);
     
     // OPPOSITE PLAYER BOARD
-    player1Board = new PlayerBoard((int) (0.3 * this.width), (int) (0.75 * this.height), this.width - ((int) (0.3 * this.width)), (int) (0.25 * this.height), 1, this.spriteBatch, this.model, this.cardsTexture, this.tokensTexture, this.bonusTokensTexture, this.camelsActionsButtonsTexture, this.starTexture, this.jaipurFont);
+    player1Board = new PlayerBoard((int) (0.3 * this.width), (int) (0.75 * this.height), this.width - ((int) (0.3 * this.width)), (int) (0.25 * this.height), 1 - JaipurGame.playerID, this.spriteBatch, this.model, this.cardsTexture, this.tokensTexture, this.bonusTokensTexture, this.camelsActionsButtonsTexture, this.starTexture, this.jaipurFont);
     
     // MARKET BOARD
     marketBoard = new MarketBoard((int) (0.3 * this.width), (int) (0.25 * this.height), this.width - ((int) (0.3 * this.width)), (int) (0.5 * this.height), this.spriteBatch, this.model, this.cardsTexture, this.jaipurFont);
@@ -165,7 +165,7 @@ public class JaipurView {
     tokensBoard.resetPos(0, 0, (int) (0.3 * this.width), this.height);
     
     // SELF PLAYER BOARD
-    player0Board.resetPos((int) (0.3 * this.width), 0, this.width - ((int) (0.3 * this.width)), (int) (0.25 * this.height));
+    playerSelfBoard.resetPos((int) (0.3 * this.width), 0, this.width - ((int) (0.3 * this.width)), (int) (0.25 * this.height));
     
     // OPPOSITE PLAYER BOARD
     player1Board.resetPos((int) (0.3 * this.width), (int) (0.75 * this.height), this.width - ((int) (0.3 * this.width)), (int) (0.25 * this.height));
