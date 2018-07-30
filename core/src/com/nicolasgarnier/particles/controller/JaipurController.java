@@ -183,12 +183,16 @@ public class JaipurController {
               int actionButton = view.actionButtonClicked(x, y);
               if (actionButton == 1) {
                 String turnDescription = model.getCards();
-                model.nextPlayer();
-                view.recomputeSpritesPositions();
-                model.reevaluateAvailableActions();
-                sendUpdatedModel(turnDescription);
-                waitForOpponentAction();
-                return true;
+                if (model.roundOver) {
+                  sendUpdatedModel(null);
+                } else {
+                  model.nextPlayer();
+                  view.recomputeSpritesPositions();
+                  model.reevaluateAvailableActions();
+                  sendUpdatedModel(turnDescription);
+                  waitForOpponentAction();
+                  return true;
+                }
               }
             }
             
@@ -213,7 +217,10 @@ public class JaipurController {
               int actionButton = view.actionButtonClicked(x, y);
               if (actionButton == 0) {
                 String turnDescription = model.sellCards();
-                if (model.threeGoodsMissing()) model.roundOver = true;
+                if (model.threeGoodsMissing()) {
+                  model.roundOver = true;
+                  sendUpdatedModel(null);
+                }
                 if (!model.roundOver) {
                   model.nextPlayer();
                   view.recomputeSpritesPositions();
