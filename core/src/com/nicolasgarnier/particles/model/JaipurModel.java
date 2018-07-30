@@ -281,6 +281,15 @@ public class JaipurModel implements Serializable {
     else return true;
   }
   
+  public int getSingleCardSelectedInMarketKind() {
+    for (int i = 0; i < marketSelected.size(); ++i) {
+      if (marketSelected.get(i)) {
+        return market.get(i);
+      }
+    }
+    return -1;
+  }
+  
   public int nbSelectedCardsInMarket() {
     int ret = 0;
     for (boolean b : marketSelected) {
@@ -358,8 +367,10 @@ public class JaipurModel implements Serializable {
     return true;
   }
   
-  public void getCards() {
+  public String getCards() {
+    String ret = "Opponent ";
     if (marketCamelsSelected) {
+      ret += "took the camels from the market.";
       for (int i = 0; i < marketSelected.size(); ++i) {
         if (marketSelected.get(i)) {
           if (deck.size() != 0) {
@@ -372,6 +383,8 @@ public class JaipurModel implements Serializable {
         }
       }
     } else {
+      int kindOfSelectedCard = getSingleCardSelectedInMarketKind();
+      ret += "took a single " + Constants.GOODS_NAMES[kindOfSelectedCard] + " card form the market.";
       for (int i = 0; i < marketSelected.size(); ++i) {
         if (marketSelected.get(i)) {
           if (deck.size() != 0) {
@@ -385,14 +398,20 @@ public class JaipurModel implements Serializable {
         }
       }
     }
+    return ret;
   }
   
-  public void exchangeCards() {
+  public String exchangeCards() {
     boolean curPlayerSelectedOver = false;
     int curPlayerSelectedCurIdx = 0;
+    int[] marketSelectedIDs = {0, 0, 0, 0, 0, 0};
+    int[] handSelectedIDs = {0, 0, 0, 0, 0, 0, 0};
+    String ret = "Opponent ";
     for (int i = 0; i < marketSelected.size(); ++i) {
       if (marketSelected.get(i)) {
+        marketSelectedIDs[market.get(i)]++;
         if (curPlayerSelectedOver) {
+          handSelectedIDs[Constants.SPECIAL_CAMELS]++;
           int marketCardToExchange = market.get(i);
           market.set(i, Constants.SPECIAL_CAMELS);
           playerCamels.set(playerTurn, playerCamels.get(playerTurn) - 1);
@@ -407,11 +426,13 @@ public class JaipurModel implements Serializable {
             }
           }
           if (found) {
+            handSelectedIDs[playerCards.get(playerTurn).get(curPlayerSelectedCurIdx)]++;
             int marketCardToExchange = market.get(i);
             market.set(i, playerCards.get(playerTurn).get(curPlayerSelectedCurIdx));
             playerCards.get(playerTurn).set(curPlayerSelectedCurIdx, marketCardToExchange);
             curPlayerSelectedCurIdx++;
           } else {
+            handSelectedIDs[Constants.SPECIAL_CAMELS]++;
             int marketCardToExchange = market.get(i);
             market.set(i, Constants.SPECIAL_CAMELS);
             playerCamels.set(playerTurn, playerCamels.get(playerTurn) - 1);
@@ -421,11 +442,33 @@ public class JaipurModel implements Serializable {
         }
       }
     }
+    
+    // Writing the log message
+    ret += "exchanged ";
+    for (int i = 0; i < handSelectedIDs.length; ++i) {
+      if (handSelectedIDs[i] != 0) {
+        if (i == Constants.SPECIAL_CAMELS) {
+          ret += handSelectedIDs[i] + " " + Constants.SPECIAL_CAMELS_NAME + " ";
+        } else {
+          ret += handSelectedIDs[i] + " " + Constants.GOODS_NAMES[i] + " ";
+        }
+      }
+    }
+    ret += "from his hand with ";
+    for (int i = 0; i < marketSelectedIDs.length; ++i) {
+      if (marketSelectedIDs[i] != 0) {
+        ret += marketSelectedIDs[i] + " " + Constants.GOODS_NAMES[i] + " ";
+      }
+    }
+    ret += "from the market.";
+    
+    return ret;
   }
   
-  public void sellCards() {
+  public String sellCards() {
     int cardsToSellID = -1;
     int nbCardsToSell = 0;
+    String ret = "Opponent ";
     for (int i = 0; i < playerCardsSelected.get(playerTurn).size(); ++i) {
       if (playerCardsSelected.get(playerTurn).get(i)) {
         cardsToSellID = playerCards.get(playerTurn).get(i);
@@ -474,6 +517,9 @@ public class JaipurModel implements Serializable {
     }
     
     playerScore.set(playerTurn, curScore);
+    
+    ret += " sold " + nbCardsToSell + " " + Constants.GOODS_NAMES[cardsToSellID] + " cards.";
+    return ret;
   }
   
   public void nextPlayer() {

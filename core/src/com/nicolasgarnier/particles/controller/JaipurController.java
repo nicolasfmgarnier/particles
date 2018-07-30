@@ -12,6 +12,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.nicolasgarnier.particles.Constants;
 import com.nicolasgarnier.particles.JaipurClient;
+import com.nicolasgarnier.particles.JaipurClientServerMessage;
 import com.nicolasgarnier.particles.JaipurGame;
 import com.nicolasgarnier.particles.JaipurServer;
 import com.nicolasgarnier.particles.MenuStage;
@@ -89,8 +90,8 @@ public class JaipurController {
   
   public void setView(final JaipurView view) {
     // We start by running a ClientThread if the curPlayer is not me (to wait for the updated model)
-    if (JaipurGame.playerID != model.playerTurn) waitForOpponentAction();
     this.view = view;
+    if (JaipurGame.playerID != model.playerTurn) waitForOpponentAction();
     initEventListener();
   }
   
@@ -181,11 +182,11 @@ public class JaipurController {
             if (model.readyToGetCards) {
               int actionButton = view.actionButtonClicked(x, y);
               if (actionButton == 1) {
-                model.getCards();
+                String turnDescription = model.getCards();
                 model.nextPlayer();
                 view.recomputeSpritesPositions();
                 model.reevaluateAvailableActions();
-                sendUpdatedModel();
+                sendUpdatedModel(turnDescription);
                 waitForOpponentAction();
                 return true;
               }
@@ -196,11 +197,11 @@ public class JaipurController {
             if (model.readyToExchangeCards) {
               int actionButton = view.actionButtonClicked(x, y);
               if (actionButton == 2) {
-                model.exchangeCards();
+                String turnDescription = model.exchangeCards();
                 model.nextPlayer();
                 view.recomputeSpritesPositions();
                 model.reevaluateAvailableActions();
-                sendUpdatedModel();
+                sendUpdatedModel(turnDescription);
                 waitForOpponentAction();
                 return true;
               }
@@ -211,13 +212,13 @@ public class JaipurController {
             if (model.readyToSellCards) {
               int actionButton = view.actionButtonClicked(x, y);
               if (actionButton == 0) {
-                model.sellCards();
+                String turnDescription = model.sellCards();
                 if (model.threeGoodsMissing()) model.roundOver = true;
                 if (!model.roundOver) {
                   model.nextPlayer();
                   view.recomputeSpritesPositions();
                   model.reevaluateAvailableActions();
-                  sendUpdatedModel();
+                  sendUpdatedModel(turnDescription);
                   waitForOpponentAction();
                   return true;
                 }
@@ -283,10 +284,11 @@ public class JaipurController {
     Gdx.input.setInputProcessor(inputProcessor);
   }
   
-  private void sendUpdatedModel() {
+  private void sendUpdatedModel(final String logMsg) {
     try {
       ObjectOutputStream oos1 = new ObjectOutputStream(clientSocket.getOutputStream());
-      oos1.writeObject(model);
+      JaipurClientServerMessage msg = new JaipurClientServerMessage(model, logMsg);
+      oos1.writeObject(msg);
     } catch (IOException e) {
       e.printStackTrace();
     }

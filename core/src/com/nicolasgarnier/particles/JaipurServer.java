@@ -13,7 +13,7 @@ public class JaipurServer implements Runnable {
   private int portPlayer1;
   private int portPlayer2;
   private JaipurModel model;
-  private JaipurModel modelTransient;
+  private JaipurClientServerMessage msgToFwd;
   private int nbConnected;
   
   private boolean receivedFromSocketPlayer1;
@@ -49,10 +49,11 @@ public class JaipurServer implements Runnable {
     
     // Sending it to both clients
     try {
+      JaipurClientServerMessage msgToSend = new JaipurClientServerMessage(model, null);
       ObjectOutputStream oos1 = new ObjectOutputStream(socketPlayer1.getOutputStream());
-      oos1.writeObject(model);
+      oos1.writeObject(msgToSend);
       ObjectOutputStream oos2 = new ObjectOutputStream(socketPlayer2.getOutputStream());
-      oos2.writeObject(model);
+      oos2.writeObject(msgToSend);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -71,12 +72,12 @@ public class JaipurServer implements Runnable {
           receivedFromSocketPlayer1 = false;
           // We need to send the model to the Player2
           ObjectOutputStream oos2 = new ObjectOutputStream(socketPlayer2.getOutputStream());
-          oos2.writeObject(modelTransient);
+          oos2.writeObject(msgToFwd);
         } else if (receivedFromSocketPlayer2) {
           receivedFromSocketPlayer2 = false;
           // We need to send the model to the Player1
           ObjectOutputStream oos1 = new ObjectOutputStream(socketPlayer1.getOutputStream());
-          oos1.writeObject(modelTransient);
+          oos1.writeObject(msgToFwd);
         }
         Thread.sleep(500);
       } catch (InterruptedException e) {
@@ -128,7 +129,7 @@ public class JaipurServer implements Runnable {
       while (true) {
         try {
           ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-          modelTransient = (JaipurModel) ois.readObject();
+          msgToFwd = (JaipurClientServerMessage) ois.readObject();
           if (portNumber == portPlayer1) {
             receivedFromSocketPlayer1 = true;
             socketPlayer1 = socket;

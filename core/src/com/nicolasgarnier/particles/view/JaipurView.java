@@ -15,7 +15,7 @@ public class JaipurView {
   private TokensBoard tokensBoard;
   private MarketBoard marketBoard;
   private PlayerSelfBoard playerSelfBoard;
-  private PlayerBoard player1Board;
+  private PlayerOpponentBoard playerOpponentBoard;
   private ActionBoard actionBoard;
   private ScoreBoard scoreBoard;
   private GameOverBoard gameOverBoard;
@@ -36,6 +36,8 @@ public class JaipurView {
   
   private final BitmapFont jaipurFont;
   private final BitmapFont jaipurFontLarge;
+  
+  public boolean readyToRender = true;
   
   public JaipurView(final int width, final int height, final SpriteBatch spriteBatch, final JaipurModel model) {
     this.width = width;
@@ -60,13 +62,15 @@ public class JaipurView {
   public void render() {
     spriteBatch.begin();
     if (!model.roundOver && !model.gameOver) {
-      if (JaipurGame.playerID != model.playerTurn) Gdx.graphics.setTitle("Jaipur - Waiting for opponent action...");
-      else Gdx.graphics.setTitle("Jaipur - Your turn to play !");
-      tokensBoard.render();
-      marketBoard.render();
-      playerSelfBoard.render();
-      player1Board.render();
-      actionBoard.render();
+      if (readyToRender) {
+        if (JaipurGame.playerID != model.playerTurn) Gdx.graphics.setTitle("Jaipur - Waiting for opponent action...");
+        else Gdx.graphics.setTitle("Jaipur - Your turn to play !");
+        tokensBoard.render();
+        marketBoard.render();
+        playerSelfBoard.render();
+        playerOpponentBoard.render();
+        actionBoard.render();
+      }
     } else if (!model.gameOver) {
       scoreBoard.render();
     } else {
@@ -128,7 +132,7 @@ public class JaipurView {
       tokensBoard.computeTokensBoxes();
       marketBoard.computeCardsBoxes();
       playerSelfBoard.computeBoxes();
-      player1Board.computeBoxes();
+      playerOpponentBoard.computeBoxes();
       actionBoard.computeButtonsBoxes();
     } else if (!model.gameOver) {
       scoreBoard.computeBoxes();
@@ -145,7 +149,7 @@ public class JaipurView {
     playerSelfBoard = new PlayerSelfBoard((int) (0.3 * this.width), 0, this.width - ((int) (0.3 * this.width)), (int) (0.25 * this.height), JaipurGame.playerID, this.spriteBatch, this.model, this.cardsTexture, this.tokensTexture, this.bonusTokensTexture, this.camelsActionsButtonsTexture, this.starTexture, this.jaipurFont);
     
     // OPPOSITE PLAYER BOARD
-    player1Board = new PlayerBoard((int) (0.3 * this.width), (int) (0.75 * this.height), this.width - ((int) (0.3 * this.width)), (int) (0.25 * this.height), 1 - JaipurGame.playerID, this.spriteBatch, this.model, this.cardsTexture, this.tokensTexture, this.bonusTokensTexture, this.camelsActionsButtonsTexture, this.starTexture, this.jaipurFont);
+    playerOpponentBoard = new PlayerOpponentBoard((int) (0.3 * this.width), (int) (0.75 * this.height), this.width - ((int) (0.3 * this.width)), (int) (0.25 * this.height), 1 - JaipurGame.playerID, this.spriteBatch, this.model, this.cardsTexture, this.tokensTexture, this.bonusTokensTexture, this.camelsActionsButtonsTexture, this.starTexture, this.jaipurFont);
     
     // MARKET BOARD
     marketBoard = new MarketBoard((int) (0.3 * this.width), (int) (0.25 * this.height), this.width - ((int) (0.3 * this.width)), (int) (0.5 * this.height), this.spriteBatch, this.model, this.cardsTexture, this.jaipurFont);
@@ -168,7 +172,7 @@ public class JaipurView {
     playerSelfBoard.resetPos((int) (0.3 * this.width), 0, this.width - ((int) (0.3 * this.width)), (int) (0.25 * this.height));
     
     // OPPOSITE PLAYER BOARD
-    player1Board.resetPos((int) (0.3 * this.width), (int) (0.75 * this.height), this.width - ((int) (0.3 * this.width)), (int) (0.25 * this.height));
+    playerOpponentBoard.resetPos((int) (0.3 * this.width), (int) (0.75 * this.height), this.width - ((int) (0.3 * this.width)), (int) (0.25 * this.height));
     
     // MARKET BOARD
     marketBoard.resetPos((int) (0.3 * this.width), (int) (0.25 * this.height), this.width - ((int) (0.3 * this.width)), (int) (0.5 * this.height));

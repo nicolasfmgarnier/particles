@@ -24,10 +24,14 @@ public class JaipurClient implements Runnable {
   public void run() {
     try {
       ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-      JaipurModel modelTmp = (JaipurModel) ois.readObject();
-      model.copy(modelTmp);
+      JaipurClientServerMessage msgReceived = (JaipurClientServerMessage) ois.readObject();
+      if (view != null) view.readyToRender = false;
+      model.copy(msgReceived.model);
       if (view != null) view.recomputeSpritesPositions();
-      System.out.println("Model received");
+      if (view != null) view.readyToRender = true;
+      if (msgReceived.logMsg != null) {
+        System.out.println(msgReceived.logMsg);
+      }
     } catch (UnknownHostException e) {
       e.printStackTrace();
     } catch (IOException e) {

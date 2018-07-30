@@ -20,6 +20,15 @@ public class Constants {
   
   public static int[] GOODS = {GOOD_DIAMONDS, GOOD_GOLD, GOOD_SILVER, GOOD_CLOTHES, GOOD_SPICES, GOOD_LEATHER};
   
+  public static String[] GOODS_NAMES = {"Diamonds",
+                                        "Gold",
+                                        "Silver",
+                                        "Clothes",
+                                        "Spices",
+                                        "Leather"};
+  
+  public static String SPECIAL_CAMELS_NAME = "Camels";
+  
   public static int[][] INIT_GOODS_TOKENS = {{5, 5, 5, 7, 7},
                                              {5, 5, 5, 6, 6},
                                              {5, 5, 5, 5, 5},
