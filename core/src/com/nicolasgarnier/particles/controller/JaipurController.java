@@ -69,8 +69,7 @@ public class JaipurController {
         try {
           JaipurGame.playerID = 1;
           
-          //serverIP = menu.getIPToConnectTextField().getMessageText();
-          serverIP = "192.168.205.57";
+          serverIP = menu.getIPToConnectTextField().getMessageText();
           serverPort = 22001;
           
           // Creating the socket
