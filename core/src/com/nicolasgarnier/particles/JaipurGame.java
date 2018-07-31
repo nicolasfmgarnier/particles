@@ -57,6 +57,7 @@ public class JaipurGame {
   public void resize(final int width, final int height) {
     menuStage.getViewport().update(width, height, true);
     menuStage.resize(width, height);
+    if (jaipurBoard != null) jaipurBoard.resize(width, height);
     Matrix4 matrix = new Matrix4();
     matrix.setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     this.spriteBatch.setProjectionMatrix(matrix);
