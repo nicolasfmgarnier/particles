@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.nicolasgarnier.particles.Constants;
+import com.nicolasgarnier.particles.JaipurGame;
 import com.nicolasgarnier.particles.model.JaipurModel;
 
 public class ScoreBoard {
@@ -51,17 +52,17 @@ public class ScoreBoard {
   
   public void render() {
     jaipurFontLarge.getData().setScale((float) score0Scale);
-    jaipurFontLarge.draw(spriteBatch, "Score : " + Integer.toString(model.playerScore.get(0)), (float) score0.originX, (float) score0.originY);
+    jaipurFontLarge.draw(spriteBatch, "Score : " + Integer.toString(model.playerScore.get(JaipurGame.playerID)), (float) score0.originX, (float) score0.originY);
     jaipurFontLarge.getData().setScale(1.0f);
     
     jaipurFontLarge.getData().setScale((float) score1Scale);
-    jaipurFontLarge.draw(spriteBatch, "Score : " + Integer.toString(model.playerScore.get(1)), (float) score1.originX, (float) score1.originY);
+    jaipurFontLarge.draw(spriteBatch, "Score : " + Integer.toString(model.playerScore.get(1 - JaipurGame.playerID)), (float) score1.originX, (float) score1.originY);
     jaipurFontLarge.getData().setScale(1.0f);
     
-    if (model.playerScore.get(0) >= model.playerScore.get(1)) {
+    if (model.playerScore.get(JaipurGame.playerID) >= model.playerScore.get(1 - JaipurGame.playerID)) {
       spriteBatch.draw(starTexture, (float) victoryStar0.originX, (float) victoryStar0.originY, (float) victoryStar0.width, (float) victoryStar0.height, 0, 0, Constants.ICONS_TEXTURE_WIDTH, Constants.ICONS_TEXTURE_HEIGHT, false, false);
     }
-    if (model.playerScore.get(1) >= model.playerScore.get(0)) {
+    if (model.playerScore.get(1 - JaipurGame.playerID) >= model.playerScore.get(JaipurGame.playerID)) {
       spriteBatch.draw(starTexture, (float) victoryStar1.originX, (float) victoryStar1.originY, (float) victoryStar1.width, (float) victoryStar1.height, 0, 0, Constants.ICONS_TEXTURE_WIDTH, Constants.ICONS_TEXTURE_HEIGHT, false, false);
     }
     
