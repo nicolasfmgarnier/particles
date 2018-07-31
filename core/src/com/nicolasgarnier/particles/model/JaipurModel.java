@@ -45,6 +45,7 @@ public class JaipurModel implements Serializable {
   public boolean roundOver;
   public boolean gameOver;
   public int lastToStart;
+  public boolean roundStarted;
   
   // Copy internal values
   public void copy(final JaipurModel model) {
@@ -74,6 +75,7 @@ public class JaipurModel implements Serializable {
     this.roundOver = model.roundOver;
     this.gameOver = model.gameOver;
     this.lastToStart = model.lastToStart;
+    this.roundStarted = model.roundStarted;
   }
   
   // Start game/round
@@ -200,6 +202,9 @@ public class JaipurModel implements Serializable {
     // The game is not over yet...
     roundOver = false;
     gameOver = false;
+    
+    // But a round just started !
+    roundStarted = true;
   }
   
   private List<Integer> generateDeck() {
